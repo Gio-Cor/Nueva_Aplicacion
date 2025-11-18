@@ -52,7 +52,7 @@ abstract class BaseDatos_Biscotti : RoomDatabase() {
             }
         }
 
-        suspend fun poblarDatos(database: BaseDatos_Biscotti) {
+           suspend fun poblarDatos(database: BaseDatos_Biscotti) {
             val usuarioDao = database.usuarioDao()
             val productoDao = database.productoDao()
 
