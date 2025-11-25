@@ -1,6 +1,7 @@
 package com.example.aplicacionbiscotti.ui.views
 
 import androidx.compose.animation.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -40,37 +41,23 @@ fun PantallaAgregarProducto(
 
     var mostrarExito by remember { mutableStateOf(false) }
 
-    val rosaBiscotti = Color(0xFFFF6B9D)
-    val grisOscuroBiscotti = Color(0xFF333333)
-
     val categorias = listOf(
-        "Matrimonio",
-        "Infantil",
-        "Personajes",
-        "Anime",
-        "Disney",
-        "Celebración",
-        "Otros"
+        "Matrimonio", "Infantil", "Personajes", "Anime", "Disney", "Celebración", "Otros"
     )
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text(
-                        "Agregar Producto",
-                        fontWeight = FontWeight.Bold
-                    )
-                },
+                title = { Text("Agregar Producto", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = rosaBiscotti,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
                 )
             )
         }
@@ -79,6 +66,7 @@ fun PantallaAgregarProducto(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .background(MaterialTheme.colorScheme.background)
                 .verticalScroll(rememberScrollState())
                 .padding(24.dp)
         ) {
@@ -86,7 +74,7 @@ fun PantallaAgregarProducto(
                 text = "Información del Producto",
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
-                color = grisOscuroBiscotti
+                color = MaterialTheme.colorScheme.onBackground
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -95,14 +83,12 @@ fun PantallaAgregarProducto(
                 value = nombre,
                 onValueChange = { nombre = it },
                 label = { Text("Nombre del producto") },
-                leadingIcon = {
-                    Icon(Icons.Default.ShoppingCart, contentDescription = null)
-                },
+                leadingIcon = { Icon(Icons.Default.ShoppingCart, contentDescription = null) },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = rosaBiscotti,
-                    focusedLabelColor = rosaBiscotti,
-                    cursorColor = rosaBiscotti
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    cursorColor = MaterialTheme.colorScheme.primary
                 ),
                 singleLine = true
             )
@@ -113,14 +99,12 @@ fun PantallaAgregarProducto(
                 value = descripcion,
                 onValueChange = { descripcion = it },
                 label = { Text("Descripción del producto") },
-                leadingIcon = {
-                    Icon(Icons.Default.Description, contentDescription = null)
-                },
+                leadingIcon = { Icon(Icons.Default.Description, contentDescription = null) },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = rosaBiscotti,
-                    focusedLabelColor = rosaBiscotti,
-                    cursorColor = rosaBiscotti
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    cursorColor = MaterialTheme.colorScheme.primary
                 ),
                 maxLines = 3
             )
@@ -131,14 +115,12 @@ fun PantallaAgregarProducto(
                 value = precio,
                 onValueChange = { precio = it.filter { char -> char.isDigit() } },
                 label = { Text("Precio") },
-                leadingIcon = {
-                    Icon(Icons.Default.AttachMoney, contentDescription = null)
-                },
+                leadingIcon = { Icon(Icons.Default.AttachMoney, contentDescription = null) },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = rosaBiscotti,
-                    focusedLabelColor = rosaBiscotti,
-                    cursorColor = rosaBiscotti
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    cursorColor = MaterialTheme.colorScheme.primary
                 ),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
@@ -146,7 +128,6 @@ fun PantallaAgregarProducto(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Dropdown de categorías
             ExposedDropdownMenuBox(
                 expanded = expandidoCategorias,
                 onExpandedChange = { expandidoCategorias = !expandidoCategorias }
@@ -156,15 +137,11 @@ fun PantallaAgregarProducto(
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Categoría") },
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandidoCategorias)
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .menuAnchor(),
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandidoCategorias) },
+                    modifier = Modifier.fillMaxWidth().menuAnchor(),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = rosaBiscotti,
-                        focusedLabelColor = rosaBiscotti
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary
                     )
                 )
 
@@ -190,15 +167,13 @@ fun PantallaAgregarProducto(
                 value = imagenUrl,
                 onValueChange = { imagenUrl = it },
                 label = { Text("Nombre de imagen en drawable") },
-                leadingIcon = {
-                    Icon(Icons.Default.Image, contentDescription = null)
-                },
+                leadingIcon = { Icon(Icons.Default.Image, contentDescription = null) },
                 placeholder = { Text("ejemplo: galleta_matrimonio") },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = rosaBiscotti,
-                    focusedLabelColor = rosaBiscotti,
-                    cursorColor = rosaBiscotti
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    cursorColor = MaterialTheme.colorScheme.primary
                 ),
                 singleLine = true
             )
@@ -214,28 +189,16 @@ fun PantallaAgregarProducto(
 
             AnimatedVisibility(visible = mostrarExito) {
                 Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 8.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color(0xFF4CAF50).copy(alpha = 0.1f)
-                    )
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF4CAF50).copy(alpha = 0.1f))
                 ) {
                     Row(
                         modifier = Modifier.padding(12.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(
-                            Icons.Default.CheckCircle,
-                            contentDescription = null,
-                            tint = Color(0xFF4CAF50)
-                        )
+                        Icon(Icons.Default.CheckCircle, null, tint = Color(0xFF4CAF50))
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "¡Producto agregado exitosamente!",
-                            color = Color(0xFF4CAF50),
-                            fontSize = 14.sp
-                        )
+                        Text("¡Producto agregado exitosamente!", color = Color(0xFF4CAF50), fontSize = 14.sp)
                     }
                 }
             }
@@ -246,34 +209,21 @@ fun PantallaAgregarProducto(
                 onClick = {
                     viewModel.agregarProducto(nombre, descripcion, precio, imagenUrl, categoria)
                     mostrarExito = true
-
-                    // Limpiar campos y volver después de agregar
                     kotlinx.coroutines.GlobalScope.launch {
                         delay(1500)
                         navController.popBackStack()
                     }
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = rosaBiscotti
-                ),
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(12.dp),
                 enabled = !cargando
             ) {
                 if (cargando) {
-                    CircularProgressIndicator(
-                        color = Color.White,
-                        modifier = Modifier.size(24.dp)
-                    )
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
                 } else {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Default.Add,
-                            contentDescription = null,
-                            modifier = Modifier.padding(end = 8.dp)
-                        )
+                        Icon(Icons.Default.Add, null, modifier = Modifier.padding(end = 8.dp))
                         Text("Agregar Producto", fontSize = 16.sp)
                     }
                 }

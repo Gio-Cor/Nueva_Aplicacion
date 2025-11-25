@@ -20,4 +20,7 @@ interface CarritoDao {
 
     @Query("UPDATE carrito SET cantidad = :cantidad WHERE id = :carritoId")
     suspend fun actualizarCantidad(carritoId: Int, cantidad: Int)
+
+    @Query("SELECT * FROM carrito WHERE usuarioId = :usuarioId AND productoId = :productoId LIMIT 1")
+    suspend fun obtenerProductoEnCarrito(usuarioId: Int, productoId: Int): Carrito?
 }

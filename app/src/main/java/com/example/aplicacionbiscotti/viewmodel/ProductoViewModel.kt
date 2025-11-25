@@ -21,6 +21,74 @@ class ProductoViewModel(application: Application) : AndroidViewModel(application
     private val _cargando = MutableStateFlow(false)
     val cargando: StateFlow<Boolean> = _cargando.asStateFlow()
 
+
+    private val _productoAEditar = MutableStateFlow<Producto?>(null)
+    val productoAEditar: StateFlow<Producto?> = _productoAEditar.asStateFlow()
+
+    init {
+
+        inicializarDatosDePrueba()
+    }
+
+    private fun inicializarDatosDePrueba() {
+        viewModelScope.launch {
+            productoDao.obtenerTodosLosProductos().firstOrNull()?.let { listaActual ->
+                if (listaActual.isEmpty()) {
+                    insertarProductosEjemplo()
+                }
+            }
+        }
+    }
+
+    private suspend fun insertarProductosEjemplo() {
+        val productosEjemplo = listOf(
+            Producto(
+                nombre = "Galletas de matrimonio",
+                descripcion = "Deliciosas galletas personalizadas",
+                precio = 7490.0,
+                imagenUrl = "fotoanillo",
+                categoria = "Matrimonio"
+            ),
+            Producto(
+                nombre = "Galletas de paw patrol",
+                descripcion = "Hermosas galletas de paw patrol",
+                precio = 20000.0,
+                imagenUrl = "paw",
+                categoria = "Infantil"
+            ),
+            Producto(
+                nombre = "Galletón de Homero y Marge",
+                descripcion = "Delicioso galletón de los simpson",
+                precio = 10490.0,
+                imagenUrl = "homer",
+                categoria = "Personajes"
+            ),
+            Producto(
+                nombre = "Galletas de goku",
+                descripcion = "5 Galletas de Dragon ball",
+                precio = 8990.0,
+                imagenUrl = "dragonball",
+                categoria = "Anime"
+            ),
+            Producto(
+                nombre = "Galletas de Lilo y Stich",
+                descripcion = "Galletas personalizadas de Lilo y Stich",
+                precio = 7000.0,
+                imagenUrl = "stitch",
+                categoria = "Disney"
+            ),
+            Producto(
+                nombre = "Galletas de navidad",
+                descripcion = "Hermosas galletas de navidad",
+                precio = 5990.0,
+                imagenUrl = "navidad",
+                categoria = "Celebración"
+            )
+        )
+        
+        productosEjemplo.forEach { productoDao.insertarProducto(it) }
+    }
+
     fun agregarProducto(nombre: String, descripcion: String, precio: String, imagenUrl: String, categoria: String) {
         viewModelScope.launch {
             _cargando.value = true
@@ -51,6 +119,15 @@ class ProductoViewModel(application: Application) : AndroidViewModel(application
             productoDao.insertarProducto(producto)
             _cargando.value = false
         }
+    }
+    
+
+    fun seleccionarProductoAEditar(producto: Producto) {
+        _productoAEditar.value = producto
+    }
+
+    fun limpiarProductoAEditar() {
+        _productoAEditar.value = null
     }
 
     fun actualizarProducto(id: Int, nombre: String, descripcion: String, precio: String, imagenUrl: String, categoria: String) {

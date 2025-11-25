@@ -7,57 +7,43 @@ import com.example.aplicacionbiscotti.data.*
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
-class CarritoViewModel(application: Application) : AndroidViewModel(application) {
+class CarritoViewModel(
+    application: Application,
+    private val carritoDao: CarritoDao
+) : AndroidViewModel(application) {
 
-    private val database = BaseDatos_Biscotti.getDatabase(application)
-    private val carritoDao = database.carritoDao()
-    private val productoDao = database.productoDao()
+    private val _items = MutableStateFlow<List<Carrito>>(emptyList())
+    val items = _items.asStateFlow()
 
-    private val _itemsCarrito = MutableStateFlow<List<Carrito>>(emptyList())
-    val itemsCarrito: StateFlow<List<Carrito>> = _itemsCarrito.asStateFlow()
+    val total: StateFlow<Double> = _items.map { lista ->
+        lista.sumOf { it.precioUnitario * it.cantidad }
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5000),
+        0.0
+    )
 
-    private val _productosCarrito = MutableStateFlow<List<Producto>>(emptyList())
-    val productosCarrito: StateFlow<List<Producto>> = _productosCarrito.asStateFlow()
-
-    private val _total = MutableStateFlow(0.0)
-    val total: StateFlow<Double> = _total.asStateFlow()
-
-    fun cargarCarrito(usuarioId: Int) {
+    fun obtenerCarrito(usuarioId: Int) {
         viewModelScope.launch {
-            carritoDao.obtenerCarritoPorUsuario(usuarioId).collect { items ->
-                _itemsCarrito.value = items
-
-                // Obtener los productos completos
-                val productos = items.mapNotNull { item ->
-                    productoDao.obtenerProductoPorId(item.productoId)
-                }
-                _productosCarrito.value = productos
-
-                // Calcular total
-                var totalCalculado = 0.0
-                items.forEach { item ->
-                    val producto = productoDao.obtenerProductoPorId(item.productoId)
-                    if (producto != null) {
-                        totalCalculado += producto.precio * item.cantidad
-                    }
-                }
-                _total.value = totalCalculado
+            carritoDao.obtenerCarritoPorUsuario(usuarioId).collect {
+                _items.value = it
             }
         }
     }
 
-    fun agregarAlCarrito(productoId: Int, usuarioId: Int) {
+    fun agregarAlCarrito(producto: Producto, usuarioId: Int) {
         viewModelScope.launch {
-            val itemExistente = _itemsCarrito.value.find { it.productoId == productoId }
+            val itemExistente = carritoDao.obtenerProductoEnCarrito(usuarioId, producto.id)
 
             if (itemExistente != null) {
-                // Si ya existe, aumentar cantidad
                 carritoDao.actualizarCantidad(itemExistente.id, itemExistente.cantidad + 1)
             } else {
-                // Si no existe, agregar nuevo
                 val nuevoItem = Carrito(
-                    productoId = productoId,
                     usuarioId = usuarioId,
+                    productoId = producto.id,
+                    nombreProducto = producto.nombre,
+                    precioUnitario = producto.precio,
+                    imagenUrl = producto.imagenUrl ?: "",
                     cantidad = 1
                 )
                 carritoDao.agregarAlCarrito(nuevoItem)
@@ -71,19 +57,25 @@ class CarritoViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
-    fun actualizarCantidad(carritoId: Int, cantidad: Int) {
-        viewModelScope.launch {
-            if (cantidad > 0) {
-                carritoDao.actualizarCantidad(carritoId, cantidad)
-            } else {
-                carritoDao.eliminarDelCarrito(carritoId)
-            }
-        }
-    }
-
     fun vaciarCarrito(usuarioId: Int) {
         viewModelScope.launch {
             carritoDao.vaciarCarrito(usuarioId)
         }
     }
+
+    fun actualizarCantidad(carritoId: Int, cantidad: Int) {
+        viewModelScope.launch {
+            if (cantidad > 0) {
+                carritoDao.actualizarCantidad(carritoId, cantidad)
+            } else {
+                eliminarDelCarrito(carritoId)
+            }
+        }
+    }
+
+    constructor(application: Application) : this(
+        application,
+        BaseDatos_Biscotti.getDatabase(application).carritoDao()
+    )
+
 }

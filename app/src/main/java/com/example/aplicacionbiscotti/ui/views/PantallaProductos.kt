@@ -35,9 +35,6 @@ fun PantallaProductos(
     val sesion by authViewModel.estadoSesion.collectAsState()
     val context = LocalContext.current
 
-    val rosaBiscotti = Color(0xFFFF6B9D)
-    val grisTextoBiscotti = Color(0xFF666666)
-
     Scaffold(
         topBar = {
             TopAppBar(
@@ -58,54 +55,64 @@ fun PantallaProductos(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = rosaBiscotti,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White,
-                    actionIconContentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary,
+                    actionIconContentColor = MaterialTheme.colorScheme.onPrimary
                 )
             )
         }
     ) { paddingValues ->
-        if (productos.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = "🍪",
-                        fontSize = 60.sp
-                    )
-                    Text(
-                        text = "No hay productos aún",
-                        fontSize = 18.sp,
-                        color = grisTextoBiscotti
-                    )
+        // Fondo del tema
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+        ) {
+            if (productos.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "🍪",
+                            fontSize = 60.sp
+                        )
+                        Text(
+                            text = "No hay productos aún",
+                            fontSize = 18.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
-            }
-        } else {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentPadding = PaddingValues(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(productos.size) { index ->
-                    val producto = productos[index]
-                    TarjetaProducto(
-                        producto = producto,
-                        onAgregarCarrito = {
-                            sesion?.let { s ->
-                                carritoViewModel.agregarAlCarrito(producto.id, s.usuarioId)
-                            }
-                        },
-                        context = context
-                    )
+            } else {
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
+                    contentPadding = PaddingValues(16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(productos.size) { index ->
+                        val producto = productos[index]
+                        TarjetaProducto(
+                            producto = producto,
+                            onAgregarCarrito = {
+                                sesion?.let { s ->
+                                    carritoViewModel.agregarAlCarrito(producto, s.id)
+                                    android.widget.Toast.makeText(context, "Agregado al carrito", android.widget.Toast.LENGTH_SHORT).show()
+                                } ?: run {
+                                    android.widget.Toast.makeText(context, "Inicia sesión primero", android.widget.Toast.LENGTH_SHORT).show()
+                                }
+                            },
+                            context = context
+                        )
+                    }
                 }
             }
         }
@@ -118,33 +125,46 @@ fun TarjetaProducto(
     onAgregarCarrito: () -> Unit,
     context: android.content.Context
 ) {
-    val rosaBiscotti = Color(0xFFFF6B9D)
-    val grisOscuroBiscotti = Color(0xFF333333)
-    val grisTextoBiscotti = Color(0xFF666666)
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .height(320.dp),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(4.dp)
+        elevation = CardDefaults.cardElevation(4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     ) {
         Column {
-            Image(
-                painter = painterResource(
-                    id = context.resources.getIdentifier(
-                        producto.imagenUrl,
-                        "drawable",
-                        context.packageName
-                    )
-                ),
-                contentDescription = producto.nombre,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(160.dp)
-                    .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
-                contentScale = ContentScale.Crop
-            )
+            val imageId = remember(producto.imagenUrl) {
+                context.resources.getIdentifier(
+                    producto.imagenUrl,
+                    "drawable",
+                    context.packageName
+                )
+            }
+            
+            if (imageId != 0) {
+                Image(
+                    painter = painterResource(id = imageId),
+                    contentDescription = producto.nombre,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(160.dp)
+                        .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(160.dp)
+                        .background(Color.LightGray),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Sin imagen", color = Color.Gray)
+                }
+            }
 
             Column(
                 modifier = Modifier
@@ -155,7 +175,7 @@ fun TarjetaProducto(
                     text = producto.nombre,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
-                    color = grisOscuroBiscotti,
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -165,7 +185,7 @@ fun TarjetaProducto(
                 Text(
                     text = producto.descripcion,
                     fontSize = 12.sp,
-                    color = grisTextoBiscotti,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -176,7 +196,7 @@ fun TarjetaProducto(
                     text = "$${String.format("%,.0f", producto.precio)}",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
-                    color = rosaBiscotti
+                    color = MaterialTheme.colorScheme.primary
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -185,7 +205,7 @@ fun TarjetaProducto(
                     onClick = onAgregarCarrito,
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = rosaBiscotti
+                        containerColor = MaterialTheme.colorScheme.primary
                     ),
                     shape = RoundedCornerShape(8.dp)
                 ) {

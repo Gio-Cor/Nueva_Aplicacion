@@ -1,0 +1,8 @@
+package com.example.aplicacionbiscotti.data
+
+
+data class RegisterRequest(
+    val username: String,
+    val email: String,
+    val password: String
+)

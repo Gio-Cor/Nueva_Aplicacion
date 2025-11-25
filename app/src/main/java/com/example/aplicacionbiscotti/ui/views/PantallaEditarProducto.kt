@@ -1,0 +1,251 @@
+package com.example.aplicacionbiscotti.ui.views
+
+import androidx.compose.animation.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import com.example.aplicacionbiscotti.viewmodel.ProductoViewModel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun PantallaEditarProducto(
+    navController: NavController,
+    viewModel: ProductoViewModel
+) {
+    val productoAEditar by viewModel.productoAEditar.collectAsState()
+
+    if (productoAEditar == null) {
+        LaunchedEffect(Unit) {
+            navController.popBackStack()
+        }
+        return
+    }
+
+    var nombre by remember { mutableStateOf(productoAEditar!!.nombre) }
+    var descripcion by remember { mutableStateOf(productoAEditar!!.descripcion) }
+    var precio by remember { mutableStateOf(productoAEditar!!.precio.toInt().toString()) }
+    var imagenUrl by remember { mutableStateOf(productoAEditar!!.imagenUrl ?: "") }
+    var categoria by remember { mutableStateOf(productoAEditar!!.categoria) }
+    
+    var expandidoCategorias by remember { mutableStateOf(false) }
+    val cargando by viewModel.cargando.collectAsState()
+    val mensajeError by viewModel.mensajeError.collectAsState()
+    var mostrarExito by remember { mutableStateOf(false) }
+
+    val categorias = listOf(
+        "Matrimonio", "Infantil", "Personajes", "Anime", 
+        "Disney", "Celebración", "Otros"
+    )
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Editar Producto", fontWeight = FontWeight.Bold) },
+                navigationIcon = {
+                    IconButton(onClick = { 
+                        viewModel.limpiarProductoAEditar()
+                        navController.popBackStack() 
+                    }) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .background(MaterialTheme.colorScheme.background)
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp)
+        ) {
+            Text(
+                text = "Modificar Información",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onBackground
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            OutlinedTextField(
+                value = nombre,
+                onValueChange = { nombre = it },
+                label = { Text("Nombre del producto") },
+                leadingIcon = { Icon(Icons.Default.ShoppingCart, contentDescription = null) },
+                modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    cursorColor = MaterialTheme.colorScheme.primary
+                ),
+                singleLine = true
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = descripcion,
+                onValueChange = { descripcion = it },
+                label = { Text("Descripción") },
+                leadingIcon = { Icon(Icons.Default.Description, contentDescription = null) },
+                modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    cursorColor = MaterialTheme.colorScheme.primary
+                ),
+                maxLines = 3
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = precio,
+                onValueChange = { precio = it.filter { char -> char.isDigit() } },
+                label = { Text("Precio") },
+                leadingIcon = { Icon(Icons.Default.AttachMoney, contentDescription = null) },
+                modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    cursorColor = MaterialTheme.colorScheme.primary
+                ),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                singleLine = true
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            ExposedDropdownMenuBox(
+                expanded = expandidoCategorias,
+                onExpandedChange = { expandidoCategorias = !expandidoCategorias }
+            ) {
+                OutlinedTextField(
+                    value = categoria,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Categoría") },
+                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expandidoCategorias) },
+                    modifier = Modifier.fillMaxWidth().menuAnchor(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
+                        focusedLabelColor = MaterialTheme.colorScheme.primary
+                    )
+                )
+                ExposedDropdownMenu(
+                    expanded = expandidoCategorias,
+                    onDismissRequest = { expandidoCategorias = false }
+                ) {
+                    categorias.forEach { cat ->
+                        DropdownMenuItem(
+                            text = { Text(cat) },
+                            onClick = {
+                                categoria = cat
+                                expandidoCategorias = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = imagenUrl,
+                onValueChange = { imagenUrl = it },
+                label = { Text("Nombre imagen drawable") },
+                leadingIcon = { Icon(Icons.Default.Image, contentDescription = null) },
+                modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    cursorColor = MaterialTheme.colorScheme.primary
+                ),
+                singleLine = true
+            )
+
+            AnimatedVisibility(visible = mensajeError != null) {
+                Text(
+                    text = mensajeError ?: "",
+                    color = Color.Red,
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
+            }
+
+            AnimatedVisibility(visible = mostrarExito) {
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFF4CAF50).copy(alpha = 0.1f))
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(Icons.Default.CheckCircle, null, tint = Color(0xFF4CAF50))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("¡Producto actualizado!", color = Color(0xFF4CAF50))
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Button(
+                onClick = {
+                    viewModel.actualizarProducto(
+                        id = productoAEditar!!.id,
+                        nombre = nombre,
+                        descripcion = descripcion,
+                        precio = precio,
+                        imagenUrl = imagenUrl,
+                        categoria = categoria
+                    )
+                    mostrarExito = true
+                    kotlinx.coroutines.GlobalScope.launch {
+                        delay(1500)
+                        viewModel.limpiarProductoAEditar()
+                        navController.popBackStack()
+                    }
+                },
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                shape = RoundedCornerShape(12.dp),
+                enabled = !cargando
+            ) {
+                if (cargando) {
+                    CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary, modifier = Modifier.size(24.dp))
+                } else {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Edit, null, modifier = Modifier.padding(end = 8.dp))
+                        Text("Guardar Cambios", fontSize = 16.sp)
+                    }
+                }
+            }
+        }
+    }
+}

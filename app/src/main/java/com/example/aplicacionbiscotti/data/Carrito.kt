@@ -9,5 +9,8 @@ data class Carrito(
     val id: Int = 0,
     val productoId: Int,
     val usuarioId: Int,
-    val cantidad: Int = 1
+    val cantidad: Int = 1,
+    val nombreProducto: String = "",
+    val precioUnitario: Double = 0.0,
+    val imagenUrl: String = ""
 )

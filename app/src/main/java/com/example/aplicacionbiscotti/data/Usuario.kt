@@ -10,5 +10,6 @@ data class Usuario(
     val nombreUsuario: String,
     val contrasena: String,
     val email: String,
-    val esAdmin: Boolean = false
+    val esAdmin: Boolean = false,
+    val fotoPerfilRuta: String = ""
 )

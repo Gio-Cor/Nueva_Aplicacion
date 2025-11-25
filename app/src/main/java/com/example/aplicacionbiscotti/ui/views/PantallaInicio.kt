@@ -29,7 +29,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaInicio(
     navController: NavController,
@@ -40,12 +40,6 @@ fun PantallaInicio(
     val productos by productoViewModel.productos.collectAsState()
     val scrollState = rememberScrollState()
     val context = LocalContext.current
-
-    val rosaBiscotti = Color(0xFFFF6B9D)
-    val rosaClaroBiscotti = Color(0xFFFFB3D0)
-    val blancoBiscotti = Color(0xFFFFFFFF)
-    val grisTextoBiscotti = Color(0xFF666666)
-    val grisOscuroBiscotti = Color(0xFF333333)
 
     val pagerState = rememberPagerState(pageCount = { productos.take(5).size })
     val scope = rememberCoroutineScope()
@@ -61,60 +55,32 @@ fun PantallaInicio(
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(blancoBiscotti)
-    ) {
-        // Header con navegación
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(rosaBiscotti)
-                .padding(16.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+    Scaffold(
+        bottomBar = {
+            BottomAppBar(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.height(64.dp)
             ) {
-                Column {
-                    Text(
-                        text = "Biscotti Cordano",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color.White
-                    )
-                    Text(
-                        text = "Hola, ${sesion?.nombreUsuario ?: "Usuario"} 👋",
-                        fontSize = 14.sp,
-                        color = Color.White.copy(alpha = 0.9f)
-                    )
-                }
-
-                Row {
-                    IconButton(
-                        onClick = { navController.navigate("carrito") }
-                    ) {
-                        Icon(
-                            Icons.Default.ShoppingCart,
-                            contentDescription = "Carrito",
-                            tint = Color.White
-                        )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(onClick = { navController.navigate("carrito") }) {
+                        Icon(Icons.Default.ShoppingCart, contentDescription = "Carrito")
                     }
-
-                    if (sesion?.esAdmin == true) {
-                        IconButton(
-                            onClick = { navController.navigate("panel_admin") }
-                        ) {
-                            Icon(
-                                Icons.Default.Settings,
-                                contentDescription = "Admin",
-                                tint = Color.White
-                            )
+                    IconButton(onClick = { navController.navigate("mis_pedidos") }) {
+                        Icon(Icons.Default.Receipt, contentDescription = "Mis Pedidos")
+                    }
+                    IconButton(onClick = { navController.navigate("perfil") }) {
+                        Icon(Icons.Default.Person, contentDescription = "Perfil")
+                    }
+                    if (sesion?.email == "admin@biscotti.com" || sesion?.esAdmin == true) {
+                        IconButton(onClick = { navController.navigate("panel_admin") }) {
+                            Icon(Icons.Default.Settings, contentDescription = "Admin")
                         }
                     }
-
                     IconButton(
                         onClick = {
                             authViewModel.cerrarSesion()
@@ -123,24 +89,45 @@ fun PantallaInicio(
                             }
                         }
                     ) {
-                        Icon(
-                            Icons.Default.ExitToApp,
-                            contentDescription = "Cerrar sesión",
-                            tint = Color.White
-                        )
+                        Icon(Icons.Default.ExitToApp, contentDescription = "Cerrar sesión")
                     }
                 }
             }
         }
-
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .padding(paddingValues)
                 .verticalScroll(scrollState)
         ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.primary)
+                    .padding(16.dp)
+            ) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.Start
+                ) {
+                    Text(
+                        text = "Biscotti Cordano",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                    Text(
+                        text = "Hola, ${sesion?.nombreUsuario ?: "Usuario"} 👋",
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.9f)
+                    )
+                }
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Sección de bienvenida
             Column(
                 modifier = Modifier.padding(horizontal = 24.dp)
             ) {
@@ -148,17 +135,15 @@ fun PantallaInicio(
                     text = "Bienvenido a Biscotti Cordano",
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
-                    color = grisOscuroBiscotti,
+                    color = MaterialTheme.colorScheme.onBackground,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
-
                 Spacer(modifier = Modifier.height(8.dp))
-
                 Text(
                     text = "Tus galletas artesanales favoritas, hechas con amor y los mejores ingredientes",
                     fontSize = 16.sp,
-                    color = grisTextoBiscotti,
+                    color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -166,16 +151,14 @@ fun PantallaInicio(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Carrusel de productos destacados
             if (productos.isNotEmpty()) {
                 Text(
                     text = "✨ Productos Destacados",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    color = grisOscuroBiscotti,
+                    color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.padding(horizontal = 24.dp)
                 )
-
                 Spacer(modifier = Modifier.height(16.dp))
 
                 HorizontalPager(
@@ -187,9 +170,7 @@ fun PantallaInicio(
                     pageSpacing = 16.dp
                 ) { page ->
                     val producto = productos.take(5)[page]
-                    val pageOffset = (
-                            (pagerState.currentPage - page) + pagerState.currentPageOffsetFraction
-                            ).absoluteValue
+                    val pageOffset = ((pagerState.currentPage - page) + pagerState.currentPageOffsetFraction).absoluteValue
 
                     Card(
                         modifier = Modifier
@@ -200,37 +181,29 @@ fun PantallaInicio(
                                 scaleY = scale
                                 alpha = lerp(0.5f, 1f, 1f - pageOffset.coerceIn(0f, 1f))
                             }
-                            .clickable {
-                                navController.navigate("productos")
-                            },
+                            .clickable { navController.navigate("productos") },
                         shape = RoundedCornerShape(20.dp),
                         elevation = CardDefaults.cardElevation(8.dp)
                     ) {
                         Box {
-                            Image(
-                                painter = painterResource(
-                                    id = context.resources.getIdentifier(
-                                        producto.imagenUrl,
-                                        "drawable",
-                                        context.packageName
-                                    )
-                                ),
-                                contentDescription = producto.nombre,
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop
-                            )
+                            val imageId = remember(producto.imagenUrl) {
+                                context.resources.getIdentifier(producto.imagenUrl, "drawable", context.packageName)
+                            }
+                            if (imageId != 0) {
+                                Image(
+                                    painter = painterResource(id = imageId),
+                                    contentDescription = producto.nombre,
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentScale = ContentScale.Crop
+                                )
+                            } else {
+                                Box(modifier = Modifier.fillMaxSize().background(Color.LightGray))
+                            }
 
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(
-                                        Brush.verticalGradient(
-                                            colors = listOf(
-                                                Color.Transparent,
-                                                Color.Black.copy(alpha = 0.7f)
-                                            )
-                                        )
-                                    )
+                                    .background(Brush.verticalGradient(colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.7f))))
                             )
 
                             Column(
@@ -238,30 +211,20 @@ fun PantallaInicio(
                                     .align(Alignment.BottomStart)
                                     .padding(20.dp)
                             ) {
-                                Text(
-                                    text = producto.nombre,
-                                    fontSize = 22.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
-                                )
-                                Text(
-                                    text = producto.descripcion,
-                                    fontSize = 14.sp,
-                                    color = Color.White.copy(alpha = 0.9f)
-                                )
+                                Text(text = producto.nombre, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                                Text(text = producto.descripcion, fontSize = 14.sp, color = Color.White.copy(alpha = 0.9f), maxLines = 2)
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
                                     text = "$${String.format("%,.0f", producto.precio)}",
                                     fontSize = 24.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = rosaClaroBiscotti
+                                    color = MaterialTheme.colorScheme.secondary // Un color de acento
                                 )
                             }
                         }
                     }
                 }
 
-                // Indicadores del carrusel
                 Row(
                     Modifier
                         .fillMaxWidth()
@@ -269,119 +232,43 @@ fun PantallaInicio(
                     horizontalArrangement = Arrangement.Center
                 ) {
                     repeat(pagerState.pageCount) { iteration ->
-                        val color = if (pagerState.currentPage == iteration)
-                            rosaBiscotti else grisTextoBiscotti.copy(alpha = 0.3f)
-                        Box(
-                            modifier = Modifier
-                                .padding(4.dp)
-                                .size(8.dp)
-                                .clip(CircleShape)
-                                .background(color)
-                        )
+                        val color = if (pagerState.currentPage == iteration) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f)
+                        Box(modifier = Modifier.padding(4.dp).size(8.dp).clip(CircleShape).background(color))
                     }
                 }
             }
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Botón ver productos
             Button(
                 onClick = { navController.navigate("productos") },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)
                     .padding(horizontal = 24.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = rosaBiscotti
-                ),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Icon(
-                    Icons.Default.ShoppingCart,
-                    contentDescription = null,
-                    modifier = Modifier.padding(end = 8.dp)
-                )
+                Icon(Icons.Default.ShoppingCart, contentDescription = null, modifier = Modifier.padding(end = 8.dp))
                 Text("Ver Todos los Productos", fontSize = 16.sp)
             }
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Sección de características
-            Column(
-                modifier = Modifier.padding(horizontal = 24.dp)
+            Button(
+                onClick = { navController.navigate("recetas") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .padding(horizontal = 24.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                shape = RoundedCornerShape(12.dp)
             ) {
-                Text(
-                    text = "¿Por qué elegirnos?",
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = grisOscuroBiscotti
-                )
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                CaracteristicaItem(
-                    titulo = "Artesanales",
-                    descripcion = "Hechas a mano con dedicación"
-                )
-
-                CaracteristicaItem(
-                    titulo = "Con Amor",
-                    descripcion = "Cada galleta lleva nuestro cariño"
-                )
-
-                CaracteristicaItem(
-                    titulo = "Personalizadas",
-                    descripcion = "Diseños únicos para cada ocasión"
-                )
-
-                CaracteristicaItem(
-                    titulo = "Creativas",
-                    descripcion = "Diseños innovadores y originales"
-                )
+                Icon(Icons.Default.Search, contentDescription = "Buscar Recetas", modifier = Modifier.padding(end = 8.dp))
+                Text("Buscar Recetas", fontSize = 16.sp)
             }
 
             Spacer(modifier = Modifier.height(32.dp))
-        }
-    }
-}
-
-@Composable
-fun CaracteristicaItem(
-    titulo: String,
-    descripcion: String
-) {
-    val rosaClaroBiscotti = Color(0xFFFFB3D0)
-    val grisOscuroBiscotti = Color(0xFF333333)
-    val grisTextoBiscotti = Color(0xFF666666)
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
-            modifier = Modifier
-                .size(60.dp)
-                .background(rosaClaroBiscotti.copy(alpha = 0.2f), RoundedCornerShape(12.dp)),
-            contentAlignment = Alignment.Center
-        ) {
-        }
-
-        Spacer(modifier = Modifier.width(16.dp))
-
-        Column {
-            Text(
-                text = titulo,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = grisOscuroBiscotti
-            )
-            Text(
-                text = descripcion,
-                fontSize = 14.sp,
-                color = grisTextoBiscotti
-            )
         }
     }
 }

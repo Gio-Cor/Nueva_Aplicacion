@@ -40,10 +40,6 @@ fun PantallaRegistro(
     val mensajeError by viewModel.mensajeError.collectAsState()
     val cargando by viewModel.cargando.collectAsState()
 
-    val rosaBiscotti = Color(0xFFFF6B9D)
-    val blancoBiscotti = Color(0xFFFFFFFF)
-    val grisTextoBiscotti = Color(0xFF666666)
-
     LaunchedEffect(sesion) {
         if (sesion != null) {
             navController.navigate("inicio") {
@@ -55,7 +51,7 @@ fun PantallaRegistro(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(blancoBiscotti)
+            .background(MaterialTheme.colorScheme.background)
             .verticalScroll(rememberScrollState())
     ) {
         // Header
@@ -63,7 +59,7 @@ fun PantallaRegistro(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(150.dp)
-                .background(rosaBiscotti),
+                .background(MaterialTheme.colorScheme.primary),
             contentAlignment = Alignment.Center
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -78,7 +74,7 @@ fun PantallaRegistro(
                         Icon(
                             Icons.Default.ArrowBack,
                             contentDescription = "Volver",
-                            tint = Color.White
+                            tint = MaterialTheme.colorScheme.onPrimary
                         )
                     }
                 }
@@ -86,12 +82,12 @@ fun PantallaRegistro(
                     text = "Crear Cuenta",
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
-                    color = Color.White
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
             }
         }
 
-        // Formulario
+
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -109,9 +105,9 @@ fun PantallaRegistro(
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = rosaBiscotti,
-                    focusedLabelColor = rosaBiscotti,
-                    cursorColor = rosaBiscotti
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    cursorColor = MaterialTheme.colorScheme.primary
                 ),
                 singleLine = true
             )
@@ -127,9 +123,9 @@ fun PantallaRegistro(
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = rosaBiscotti,
-                    focusedLabelColor = rosaBiscotti,
-                    cursorColor = rosaBiscotti
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    cursorColor = MaterialTheme.colorScheme.primary
                 ),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
@@ -148,7 +144,7 @@ fun PantallaRegistro(
                     TextButton(onClick = { mostrarContrasena = !mostrarContrasena }) {
                         Text(
                             text = if (mostrarContrasena) "Ocultar" else "Mostrar",
-                            color = rosaBiscotti,
+                            color = MaterialTheme.colorScheme.primary,
                             fontSize = 14.sp
                         )
                     }
@@ -157,9 +153,9 @@ fun PantallaRegistro(
                     VisualTransformation.None else PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = rosaBiscotti,
-                    focusedLabelColor = rosaBiscotti,
-                    cursorColor = rosaBiscotti
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    cursorColor = MaterialTheme.colorScheme.primary
                 ),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
@@ -177,9 +173,9 @@ fun PantallaRegistro(
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = rosaBiscotti,
-                    focusedLabelColor = rosaBiscotti,
-                    cursorColor = rosaBiscotti
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                    cursorColor = MaterialTheme.colorScheme.primary
                 ),
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
@@ -204,18 +200,18 @@ fun PantallaRegistro(
                     .fillMaxWidth()
                     .height(56.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = rosaBiscotti
+                    containerColor = MaterialTheme.colorScheme.primary
                 ),
                 shape = RoundedCornerShape(12.dp),
                 enabled = !cargando
             ) {
                 if (cargando) {
                     CircularProgressIndicator(
-                        color = Color.White,
+                        color = MaterialTheme.colorScheme.onPrimary,
                         modifier = Modifier.size(24.dp)
                     )
                 } else {
-                    Text("Registrarse", fontSize = 16.sp)
+                    Text("Registrarse", fontSize = 16.sp, color = MaterialTheme.colorScheme.onPrimary)
                 }
             }
 
@@ -227,11 +223,11 @@ fun PantallaRegistro(
             ) {
                 Text(
                     text = "¿Ya tienes cuenta? ",
-                    color = grisTextoBiscotti
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
                     text = "Inicia sesión",
-                    color = rosaBiscotti,
+                    color = MaterialTheme.colorScheme.primary,
                     fontWeight = FontWeight.Bold,
                     modifier = Modifier.clickable {
                         navController.popBackStack()

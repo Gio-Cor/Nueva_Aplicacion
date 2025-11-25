@@ -1,6 +1,8 @@
 package com.example.aplicacionbiscotti.ui.views
 
-import androidx.compose.foundation.*
+import android.widget.Toast
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -9,6 +11,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -21,185 +25,184 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.example.aplicacionbiscotti.R
 import com.example.aplicacionbiscotti.data.Carrito
-import com.example.aplicacionbiscotti.data.Producto
-import com.example.aplicacionbiscotti.viewmodel.*
+import com.example.aplicacionbiscotti.viewmodel.AuthViewModel
+import com.example.aplicacionbiscotti.viewmodel.CarritoViewModel
+import com.example.aplicacionbiscotti.viewmodel.PedidoViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PantallaCarrito(
     navController: NavController,
+    authViewModel: AuthViewModel,
     carritoViewModel: CarritoViewModel,
-    authViewModel: AuthViewModel
+    pedidoViewModel: PedidoViewModel
 ) {
     val sesion by authViewModel.estadoSesion.collectAsState()
-    val itemsCarrito by carritoViewModel.itemsCarrito.collectAsState()
-    val productosCarrito by carritoViewModel.productosCarrito.collectAsState()
+    val itemsCarrito by carritoViewModel.items.collectAsState()
     val total by carritoViewModel.total.collectAsState()
-    val context = LocalContext.current
 
-    val rosaBiscotti = Color(0xFFFF6B9D)
-    val grisTextoBiscotti = Color(0xFF666666)
-    val grisOscuroBiscotti = Color(0xFF333333)
+    val context = LocalContext.current
+    var procesandoPedido by remember { mutableStateOf(false) }
+
+
+    val metodosDePago = listOf("Efectivo", "Tarjeta de Débito", "Tarjeta de Crédito", "Transferencia")
+    var metodoSeleccionado by remember { mutableStateOf(metodosDePago[0]) }
+    var menuExpandido by remember { mutableStateOf(false) }
+
+
 
     LaunchedEffect(sesion) {
         sesion?.let {
-            carritoViewModel.cargarCarrito(it.usuarioId)
+            carritoViewModel.obtenerCarrito(it.usuarioId)
         }
     }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text(
-                        "Mi Carrito",
-                        fontWeight = FontWeight.Bold
-                    )
-                },
+                title = { Text("Carrito de Compras", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
-                    }
-                },
-                actions = {
-                    if (itemsCarrito.isNotEmpty()) {
-                        IconButton(
-                            onClick = {
-                                sesion?.let {
-                                    carritoViewModel.vaciarCarrito(it.usuarioId)
-                                }
-                            }
-                        ) {
-                            Icon(Icons.Default.Delete, contentDescription = "Vaciar carrito")
-                        }
+                        Icon(Icons.Default.ArrowBack, "Volver")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = rosaBiscotti,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White,
-                    actionIconContentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
                 )
             )
-        },
-        bottomBar = {
-            if (itemsCarrito.isNotEmpty()) {
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shadowElevation = 8.dp,
-                    color = Color.White
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "Total:",
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = grisOscuroBiscotti
-                            )
-                            Text(
-                                text = "$${String.format("%,.0f", total)}",
-                                fontSize = 24.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = rosaBiscotti
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.height(12.dp))
-
-                        Button(
-                            onClick = {
-                                // Aquí iría la lógica de pagar
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(56.dp),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = rosaBiscotti
-                            ),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Icon(
-                                Icons.Default.CheckCircle,
-                                contentDescription = null,
-                                modifier = Modifier.padding(end = 8.dp)
-                            )
-                            Text("Realizar Pedido", fontSize = 16.sp)
-                        }
-                    }
-                }
-            }
         }
     ) { paddingValues ->
         if (itemsCarrito.isEmpty()) {
             Box(
-                modifier = Modifier
+                Modifier
                     .fillMaxSize()
-                    .padding(paddingValues),
+                    .padding(paddingValues)
+                    .background(MaterialTheme.colorScheme.background),
                 contentAlignment = Alignment.Center
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.padding(32.dp)
-                ) {
-                    Text(
-                        text = "🛒",
-                        fontSize = 80.sp
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = "Tu carrito está vacío",
-                        fontSize = 22.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = grisOscuroBiscotti
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Agrega productos para comenzar tu pedido",
-                        fontSize = 14.sp,
-                        color = grisTextoBiscotti,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(modifier = Modifier.height(24.dp))
-                    Button(
-                        onClick = { navController.popBackStack() },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = rosaBiscotti
-                        )
-                    ) {
-                        Text("Ver Productos")
-                    }
-                }
+                Text(
+                    "Tu carrito está vacío",
+                    fontSize = 18.sp,
+                    textAlign = TextAlign.Center,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
             }
         } else {
-            LazyColumn(
-                modifier = Modifier
+            Column(
+                Modifier
                     .fillMaxSize()
-                    .padding(paddingValues),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                    .padding(paddingValues)
+                    .background(MaterialTheme.colorScheme.background)
             ) {
-                items(itemsCarrito) { item ->
-                    val producto = productosCarrito.find { it.id == item.productoId }
-                    if (producto != null) {
+                LazyColumn(
+                    modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(itemsCarrito) { item ->
                         ItemCarrito(
                             item = item,
-                            producto = producto,
-                            onEliminar = {
-                                carritoViewModel.eliminarDelCarrito(item.id)
-                            },
-                            onCantidadChange = { nuevaCantidad ->
-                                carritoViewModel.actualizarCantidad(item.id, nuevaCantidad)
-                            },
-                            context = context
+                            onSumar = { carritoViewModel.actualizarCantidad(item.id, item.cantidad + 1) },
+                            onRestar = { if (item.cantidad > 1) carritoViewModel.actualizarCantidad(item.id, item.cantidad - 1) else carritoViewModel.eliminarDelCarrito(item.id) },
+                            onEliminar = { carritoViewModel.eliminarDelCarrito(item.id) }
                         )
+                    }
+                }
+
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+                    elevation = CardDefaults.cardElevation(8.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                ) {
+                    Column(Modifier.padding(20.dp)) {
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("Total a Pagar:", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                            Text("$${String.format("%,.0f", total)}", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                        }
+
+                        Spacer(modifier = Modifier.height(20.dp))
+
+
+                        ExposedDropdownMenuBox(
+                            expanded = menuExpandido,
+                            onExpandedChange = { menuExpandido = !menuExpandido }
+                        ) {
+                            OutlinedTextField(
+                                value = metodoSeleccionado,
+                                onValueChange = {},
+                                readOnly = true,
+                                label = { Text("Método de Pago") },
+                                trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = menuExpandido) },
+                                modifier = Modifier.fillMaxWidth().menuAnchor(),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                    focusedLabelColor = MaterialTheme.colorScheme.primary,
+                                    cursorColor = MaterialTheme.colorScheme.primary
+                                )
+                            )
+                            ExposedDropdownMenu(
+                                expanded = menuExpandido,
+                                onDismissRequest = { menuExpandido = false }
+                            ) {
+                                metodosDePago.forEach { metodo ->
+                                    DropdownMenuItem(
+                                        text = { Text(metodo) },
+                                        onClick = {
+                                            metodoSeleccionado = metodo
+                                            menuExpandido = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+
+
+                        Spacer(modifier = Modifier.height(20.dp))
+
+
+                        Button(
+                            onClick = {
+                                procesandoPedido = true
+                                sesion?.let { s ->
+                                    pedidoViewModel.crearPedido(
+                                        usuarioId = s.usuarioId,
+                                        nombreUsuario = s.nombreUsuario,
+                                        total = total,
+                                        metodoPago = metodoSeleccionado,
+                                        onPedidoCreado = {
+                                            Toast.makeText(context, "¡Pedido realizado con éxito!", Toast.LENGTH_LONG).show()
+                                            carritoViewModel.vaciarCarrito(s.usuarioId)
+                                            procesandoPedido = false
+                                            navController.navigate("mis_pedidos") {
+                                                popUpTo("carrito") { inclusive = true }
+                                            }
+                                        }
+                                    )
+                                } ?: run {
+                                    Toast.makeText(context, "Error: Sesión no encontrada", Toast.LENGTH_SHORT).show()
+                                    procesandoPedido = false
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth().height(56.dp),
+                            enabled = !procesandoPedido,
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                        ) {
+                            if (procesandoPedido) {
+                                CircularProgressIndicator(color = MaterialTheme.colorScheme.onPrimary)
+                            } else {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(Icons.Default.CheckCircle, null, tint = MaterialTheme.colorScheme.onPrimary)
+                                    Spacer(Modifier.width(8.dp))
+                                    Text("Confirmar Pedido", color = MaterialTheme.colorScheme.onPrimary)
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -210,125 +213,47 @@ fun PantallaCarrito(
 @Composable
 fun ItemCarrito(
     item: Carrito,
-    producto: Producto,
-    onEliminar: () -> Unit,
-    onCantidadChange: (Int) -> Unit,
-    context: android.content.Context
+    onSumar: () -> Unit,
+    onRestar: () -> Unit,
+    onEliminar: () -> Unit
 ) {
-    val rosaBiscotti = Color(0xFFFF6B9D)
-    val grisOscuroBiscotti = Color(0xFF333333)
-    val grisTextoBiscotti = Color(0xFF666666)
-
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(140.dp),
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(2.dp)
+        elevation = CardDefaults.cardElevation(4.dp),
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
     ) {
         Row(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            // 1. Imagen
+            val context = LocalContext.current
+            val imageId = remember(item.imagenUrl) {
+                context.resources.getIdentifier(item.imagenUrl, "drawable", context.packageName)
+            }
             Image(
-                painter = painterResource(
-                    id = context.resources.getIdentifier(
-                        producto.imagenUrl,
-                        "drawable",
-                        context.packageName
-                    )
-                ),
-                contentDescription = producto.nombre,
+                painter = painterResource(id = if (imageId != 0) imageId else R.drawable.ic_launcher_background),
+                contentDescription = item.nombreProducto,
                 modifier = Modifier
-                    .width(140.dp)
-                    .fillMaxHeight()
-                    .clip(RoundedCornerShape(topStart = 12.dp, bottomStart = 12.dp)),
+                    .size(80.dp)
+                    .clip(RoundedCornerShape(8.dp)),
                 contentScale = ContentScale.Crop
             )
 
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(12.dp)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = producto.nombre,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = grisOscuroBiscotti,
-                        maxLines = 2,
-                        modifier = Modifier.weight(1f)
-                    )
+            Spacer(Modifier.width(16.dp))
 
-                    IconButton(
-                        onClick = onEliminar,
-                        modifier = Modifier.size(24.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.Close,
-                            contentDescription = "Eliminar",
-                            tint = Color.Red,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                }
+            // 2. Datos del producto
+            Column(modifier = Modifier.weight(1f)) {
+                Text(item.nombreProducto, fontWeight = FontWeight.Bold, fontSize = 16.sp, color = MaterialTheme.colorScheme.onSurface)
+                Text("$${String.format("%,.0f", item.precioUnitario)} c/u", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
 
-                Spacer(modifier = Modifier.height(4.dp))
-
-                Text(
-                    text = "$${String.format("%,.0f", producto.precio)}",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = rosaBiscotti
-                )
-
-                Spacer(modifier = Modifier.weight(1f))
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    IconButton(
-                        onClick = { onCantidadChange(item.cantidad - 1) },
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.Remove,
-                            contentDescription = "Disminuir",
-                            tint = rosaBiscotti
-                        )
-                    }
-
-                    Text(
-                        text = "${item.cantidad}",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 8.dp)
-                    )
-
-                    IconButton(
-                        onClick = { onCantidadChange(item.cantidad + 1) },
-                        modifier = Modifier.size(32.dp)
-                    ) {
-                        Icon(
-                            Icons.Default.Add,
-                            contentDescription = "Aumentar",
-                            tint = rosaBiscotti
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.weight(1f))
-
-                    Text(
-                        text = "$${String.format("%,.0f", producto.precio * item.cantidad)}",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = grisOscuroBiscotti
-                    )
-                }
+            // 3. Botones de cantidad
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                IconButton(onClick = onRestar) { Icon(Icons.Default.RemoveCircleOutline, "Restar", tint = MaterialTheme.colorScheme.primary) }
+                Text("${item.cantidad}", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface)
+                IconButton(onClick = onSumar) { Icon(Icons.Default.AddCircleOutline, "Sumar", tint = MaterialTheme.colorScheme.primary) }
+                IconButton(onClick = onEliminar) { Icon(Icons.Default.Delete, "Eliminar", tint = Color.Red) }
             }
         }
     }

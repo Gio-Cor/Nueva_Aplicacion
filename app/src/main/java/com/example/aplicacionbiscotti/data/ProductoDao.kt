@@ -14,9 +14,9 @@ interface ProductoDao {
     @Delete
     suspend fun eliminarProducto(producto: Producto)
 
-    @Query("SELECT * FROM productos")
+    @Query("SELECT * FROM producto")
     fun obtenerTodosLosProductos(): Flow<List<Producto>>
 
-    @Query("SELECT * FROM productos WHERE id = :id")
+    @Query("SELECT * FROM producto WHERE id = :id")
     suspend fun obtenerProductoPorId(id: Int): Producto?
 }

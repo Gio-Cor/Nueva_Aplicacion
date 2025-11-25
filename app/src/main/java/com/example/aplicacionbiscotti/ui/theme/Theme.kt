@@ -11,26 +11,34 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 
+val MarronBiscotti = Color(0xFF6A442A)
+val BeigeBiscotti = Color(0xFFE7D7C1)
+val MarronOscuro = Color(0xFF3E2723)
+
 private val DarkColorScheme = darkColorScheme(
-    primary = Color(0xFFFF6B9D),
-    secondary = Color(0xFFFFB3D0),
-    tertiary = Color(0xFFE91E63)
+    primary = MarronBiscotti,
+    secondary = BeigeBiscotti,
+    tertiary = Color(0xFFD7CCC8)
 )
 
 private val LightColorScheme = lightColorScheme(
-    primary = Color(0xFFFF6B9D),
+    primary = MarronBiscotti,
     onPrimary = Color.White,
-    secondary = Color(0xFFFFB3D0),
-    background = Color.White,
-    surface = Color(0xFFF5F5F5),
-    onBackground = Color(0xFF333333),
-    onSurface = Color(0xFF666666)
+    
+    secondary = MarronOscuro,
+    onSecondary = Color.White,
+
+    background = BeigeBiscotti,
+    onBackground = MarronOscuro,
+
+    surface = BeigeBiscotti,
+    onSurface = MarronOscuro
 )
 
 @Composable
 fun TemaBiscotti(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    dynamicColor: Boolean = false, 
     content: @Composable () -> Unit
 ) {
     val colorScheme = when {

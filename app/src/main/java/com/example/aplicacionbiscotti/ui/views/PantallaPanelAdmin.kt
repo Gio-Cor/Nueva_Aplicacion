@@ -1,5 +1,6 @@
 package com.example.aplicacionbiscotti.ui.views
 
+import android.widget.Toast
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -28,20 +29,23 @@ import com.example.aplicacionbiscotti.viewmodel.*
 fun PantallaPanelAdmin(
     navController: NavController,
     productoViewModel: ProductoViewModel,
-    authViewModel: AuthViewModel
+    authViewModel: AuthViewModel,
+    pedidoViewModel: PedidoViewModel
 ) {
     val sesion by authViewModel.estadoSesion.collectAsState()
     val productos by productoViewModel.productos.collectAsState()
+    val listaPedidos by pedidoViewModel.todosLosPedidos.collectAsState(initial = emptyList())
+
     var mostrarDialogoEliminar by remember { mutableStateOf(false) }
     var productoAEliminar by remember { mutableStateOf<Producto?>(null) }
+
     val context = LocalContext.current
 
-    val rosaBiscotti = Color(0xFFFF6B9D)
-    val rosaClaroBiscotti = Color(0xFFFFB3D0)
-    val grisTextoBiscotti = Color(0xFF666666)
+    LaunchedEffect(Unit) {
+        pedidoViewModel.cargarTodosLosPedidos()
+    }
 
-    // Verificar que sea admin
-    if (sesion?.esAdmin != true) {
+    if (sesion?.email != "admin@biscotti.com") {
         LaunchedEffect(Unit) {
             navController.popBackStack()
         }
@@ -51,115 +55,70 @@ fun PantallaPanelAdmin(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text(
-                        "Panel de Administrador",
-                        fontWeight = FontWeight.Bold
-                    )
-                },
+                title = { Text("Panel de Administrador", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Volver")
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = rosaBiscotti,
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    titleContentColor = MaterialTheme.colorScheme.onPrimary,
+                    navigationIconContentColor = MaterialTheme.colorScheme.onPrimary
                 )
             )
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { navController.navigate("agregar_producto") },
-                containerColor = rosaBiscotti
+                containerColor = MaterialTheme.colorScheme.primary
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Agregar producto", tint = Color.White)
+                Icon(Icons.Default.Add, contentDescription = "Agregar", tint = MaterialTheme.colorScheme.onPrimary)
             }
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            // Estadísticas
+        Column(modifier = Modifier.fillMaxSize().padding(paddingValues).background(MaterialTheme.colorScheme.background)) {
+            // 1. Estadísticas
             Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = rosaClaroBiscotti.copy(alpha = 0.3f)
-                )
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(20.dp),
+                    modifier = Modifier.fillMaxWidth().padding(20.dp),
                     horizontalArrangement = Arrangement.SpaceAround
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "${productos.size}",
-                            fontSize = 32.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = rosaBiscotti
-                        )
-                        Text(
-                            text = "Productos",
-                            fontSize = 14.sp,
-                            color = grisTextoBiscotti
-                        )
+                        Text("${productos.size}", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                        Text("Productos", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-
-                    Divider(
-                        modifier = Modifier
-                            .height(60.dp)
-                            .width(1.dp)
-                    )
-
+                    Divider(modifier = Modifier.height(60.dp).width(1.dp), color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "✓",
-                            fontSize = 32.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = rosaBiscotti
-                        )
-                        Text(
-                            text = "Admin",
-                            fontSize = 14.sp,
-                            color = grisTextoBiscotti
-                        )
+                        Text("${listaPedidos.size}", fontSize = 32.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                        Text("Pedidos", fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
 
-            // Lista de productos
+            // BOTÓN GESTIÓN PEDIDOS
+            Button(
+                onClick = { navController.navigate("gestion_pedidos") },
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp).height(56.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Icon(Icons.Default.Settings, null, modifier = Modifier.padding(end = 8.dp), tint = MaterialTheme.colorScheme.onPrimary)
+                Text("Gestión de Pedidos", fontSize = 16.sp, color = MaterialTheme.colorScheme.onPrimary)
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // 2. Lista de productos
             if (productos.isEmpty()) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "📦",
-                            fontSize = 60.sp
-                        )
-                        Text(
-                            text = "No hay productos",
-                            fontSize = 18.sp,
-                            color = grisTextoBiscotti
-                        )
-                        Text(
-                            text = "Toca + para agregar uno",
-                            fontSize = 14.sp,
-                            color = grisTextoBiscotti
-                        )
-                    }
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("No hay productos", color = MaterialTheme.colorScheme.onBackground)
                 }
             } else {
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
                     contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
@@ -170,6 +129,10 @@ fun PantallaPanelAdmin(
                                 productoAEliminar = producto
                                 mostrarDialogoEliminar = true
                             },
+                            onEditar = {
+                                productoViewModel.seleccionarProductoAEditar(producto)
+                                navController.navigate("editar_producto")
+                            },
                             context = context
                         )
                     }
@@ -178,12 +141,11 @@ fun PantallaPanelAdmin(
         }
     }
 
-    // Diálogo de confirmación para eliminar
     if (mostrarDialogoEliminar && productoAEliminar != null) {
         AlertDialog(
             onDismissRequest = { mostrarDialogoEliminar = false },
             title = { Text("Eliminar Producto") },
-            text = { Text("¿Estás seguro de que deseas eliminar '${productoAEliminar!!.nombre}'?") },
+            text = { Text("¿Eliminar '${productoAEliminar!!.nombre}'?") },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -191,22 +153,11 @@ fun PantallaPanelAdmin(
                         mostrarDialogoEliminar = false
                         productoAEliminar = null
                     },
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = Color.Red
-                    )
-                ) {
-                    Text("Eliminar")
-                }
+                    colors = ButtonDefaults.textButtonColors(contentColor = Color.Red)
+                ) { Text("Eliminar") }
             },
             dismissButton = {
-                TextButton(
-                    onClick = {
-                        mostrarDialogoEliminar = false
-                        productoAEliminar = null
-                    }
-                ) {
-                    Text("Cancelar")
-                }
+                TextButton(onClick = { mostrarDialogoEliminar = false }) { Text("Cancelar") }
             }
         )
     }
@@ -216,80 +167,46 @@ fun PantallaPanelAdmin(
 fun TarjetaProductoAdmin(
     producto: Producto,
     onEliminar: () -> Unit,
+    onEditar: () -> Unit,
     context: android.content.Context
 ) {
-    val rosaBiscotti = Color(0xFFFF6B9D)
-    val grisOscuroBiscotti = Color(0xFF333333)
-    val grisTextoBiscotti = Color(0xFF666666)
-
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(120.dp),
+        modifier = Modifier.fillMaxWidth().height(120.dp),
         shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(2.dp)
+        elevation = CardDefaults.cardElevation(2.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
-        Row(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Image(
-                painter = painterResource(
-                    id = context.resources.getIdentifier(
-                        producto.imagenUrl,
-                        "drawable",
-                        context.packageName
-                    )
-                ),
-                contentDescription = producto.nombre,
-                modifier = Modifier
-                    .width(120.dp)
-                    .fillMaxHeight()
-                    .clip(RoundedCornerShape(topStart = 12.dp, bottomStart = 12.dp)),
-                contentScale = ContentScale.Crop
-            )
-
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(12.dp)
-            ) {
-                Text(
-                    text = producto.nombre,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = grisOscuroBiscotti,
-                    maxLines = 1
+        Row(modifier = Modifier.fillMaxSize()) {
+            val imageId = remember(producto.imagenUrl) {
+                context.resources.getIdentifier(producto.imagenUrl ?: "", "drawable", context.packageName)
+            }
+            if (imageId != 0) {
+                Image(
+                    painter = painterResource(id = imageId),
+                    contentDescription = null,
+                    modifier = Modifier.width(120.dp).fillMaxHeight().clip(RoundedCornerShape(topStart = 12.dp, bottomStart = 12.dp)),
+                    contentScale = ContentScale.Crop
                 )
+            } else {
+                Box(modifier = Modifier.width(120.dp).fillMaxHeight().background(Color.LightGray))
+            }
 
-                Text(
-                    text = producto.categoria,
-                    fontSize = 12.sp,
-                    color = grisTextoBiscotti
-                )
-
+            Column(modifier = Modifier.weight(1f).padding(12.dp)) {
+                Text(producto.nombre, fontWeight = FontWeight.Bold, maxLines = 1, color = MaterialTheme.colorScheme.onSurface)
+                Text(producto.categoria, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Spacer(modifier = Modifier.weight(1f))
-
-                Text(
-                    text = "$${String.format("%,.0f", producto.precio)}",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = rosaBiscotti
-                )
+                Text("$${String.format("%,.0f", producto.precio)}", fontWeight = FontWeight.Bold, fontSize = 18.sp, color = MaterialTheme.colorScheme.primary)
             }
 
             Column(
                 modifier = Modifier.padding(8.dp),
                 verticalArrangement = Arrangement.Center
             ) {
-                IconButton(
-                    onClick = onEliminar,
-                    modifier = Modifier.size(40.dp)
-                ) {
-                    Icon(
-                        Icons.Default.Delete,
-                        contentDescription = "Eliminar",
-                        tint = Color.Red
-                    )
+                IconButton(onClick = onEditar) {
+                    Icon(Icons.Default.Edit, contentDescription = "Editar", tint = Color.Blue)
+                }
+                IconButton(onClick = onEliminar) {
+                    Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = Color.Red)
                 }
             }
         }
